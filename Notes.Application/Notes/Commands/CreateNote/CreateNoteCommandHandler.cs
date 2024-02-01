@@ -4,9 +4,9 @@ using Notes.Domain;
 
 namespace Notes.Application.Notes.Commands.CreateNote;
 
-public class CreateNodeCommandHandler(INotesDbContext dbContext) : IRequestHandler<CreateNodeCommand, Guid>
+public class CreateNoteCommandHandler(INotesDbContext dbContext) : IRequestHandler<CreateNoteCommand, Guid>
 {
-    public async Task<Guid> Handle(CreateNodeCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(CreateNoteCommand request, CancellationToken cancellationToken)
     {
         var note = new Note
         {
