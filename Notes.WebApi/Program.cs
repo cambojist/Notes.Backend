@@ -1,4 +1,5 @@
 using System.Reflection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Notes.Application;
 using Notes.Application.Common.Mappings;
 using Notes.Application.Interfaces;
@@ -26,6 +27,18 @@ builder.Services.AddCors(
             policy.AllowAnyOrigin();
         }));
 
+builder.Services.AddAuthentication(cfg =>
+    {
+        cfg.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        cfg.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer("Bearer", opt =>
+    {
+        opt.Authority = "http://localhost:5130";
+        opt.Audience = "NotesWebAPI";
+        opt.RequireHttpsMetadata = false;
+    });
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -38,7 +51,8 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception e)
     {
-        Console.WriteLine(e);
+        var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(e, "An error occurred while app initialization");
     }
 }
 
@@ -46,5 +60,7 @@ app.UseCustomExceptionHandler();
 app.UseRouting();
 app.UseHttpsRedirection();
 app.UseCors(corsPolitics);
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 app.Run();
