@@ -39,6 +39,13 @@ builder.Services.AddAuthentication(cfg =>
         opt.RequireHttpsMetadata = false;
     });
 
+builder.Services.AddSwaggerGen(cfg =>
+{
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    cfg.IncludeXmlComments(xmlPath);
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -58,6 +65,12 @@ using (var scope = app.Services.CreateScope())
 
 app.UseCustomExceptionHandler();
 app.UseRouting();
+app.UseSwagger();
+app.UseSwaggerUI(cfg =>
+{
+    cfg.RoutePrefix = string.Empty;
+    cfg.SwaggerEndpoint("swagger/v1/swagger.json", "Notes Web API");
+});
 app.UseHttpsRedirection();
 app.UseCors(corsPolitics);
 app.UseAuthentication();
