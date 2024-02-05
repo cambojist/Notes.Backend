@@ -1,10 +1,15 @@
 using System.Reflection;
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Notes.Application;
 using Notes.Application.Common.Mappings;
 using Notes.Application.Interfaces;
 using Notes.Persistence;
+using Notes.WebApi;
 using Notes.WebApi.Middleware;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -39,12 +44,20 @@ builder.Services.AddAuthentication(cfg =>
         opt.RequireHttpsMetadata = false;
     });
 
-builder.Services.AddSwaggerGen(cfg =>
-{
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    cfg.IncludeXmlComments(xmlPath);
-});
+builder.Services.AddApiVersioning(opt =>
+    {
+        opt.ReportApiVersions = true;
+        opt.ApiVersionReader = new UrlSegmentApiVersionReader();
+    })
+    .AddMvc()
+    .AddApiExplorer(x =>
+    {
+        x.GroupNameFormat = "'v'VVV";
+        x.SubstituteApiVersionInUrl = true;
+    });
+
+builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -63,13 +76,20 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+var apiVersionDescriptionProvider = app.Services.GetService<IApiVersionDescriptionProvider>();
+
 app.UseCustomExceptionHandler();
 app.UseRouting();
 app.UseSwagger();
 app.UseSwaggerUI(cfg =>
 {
-    cfg.RoutePrefix = string.Empty;
-    cfg.SwaggerEndpoint("swagger/v1/swagger.json", "Notes Web API");
+    foreach (var description in apiVersionDescriptionProvider?.ApiVersionDescriptions!)
+    {
+        cfg.SwaggerEndpoint(
+            $"/swagger/{description.GroupName}/swagger.json",
+            description.GroupName.ToUpperInvariant());
+        cfg.RoutePrefix = string.Empty;
+    }
 });
 app.UseHttpsRedirection();
 app.UseCors(corsPolitics);

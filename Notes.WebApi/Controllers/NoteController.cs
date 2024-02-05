@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Asp.Versioning;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Notes.Application.Notes.Commands.CreateNote;
@@ -11,16 +12,18 @@ using Notes.WebApi.Models;
 namespace Notes.WebApi.Controllers;
 
 [Authorize]
-[Route("Api/[controller]")]
+[ApiVersion("1.0")]
+[ApiVersion("2.0")]
+[Route("Api/{version:ApiVersion}/[controller]")]
 [Produces("application/json")]
 public class NoteController(IMapper mapper) : BaseController
 {
     /// <summary>
-    /// Gets the list of notes
+    ///     Gets the list of notes
     /// </summary>
     /// <remarks>
-    /// Sample request:
-    /// GET /note
+    ///     Sample request:
+    ///     GET /note
     /// </remarks>
     /// <returns>Return NoteListVm</returns>
     /// <response code="200">Success</response>
@@ -40,11 +43,11 @@ public class NoteController(IMapper mapper) : BaseController
     }
 
     /// <summary>
-    /// Gets the note by id
+    ///     Gets the note by id
     /// </summary>
     /// <remarks>
-    /// Sample request:
-    /// GET /note/D34D349E-43B8-429E-BCA4-793C932FD580
+    ///     Sample request:
+    ///     GET /note/D34D349E-43B8-429E-BCA4-793C932FD580
     /// </remarks>
     /// <param name="id">Note id (guid)</param>
     /// <returns>Returns NoteDetailsVm</returns>
@@ -66,15 +69,15 @@ public class NoteController(IMapper mapper) : BaseController
     }
 
     /// <summary>
-    /// Creates the note
+    ///     Creates the note
     /// </summary>
     /// <remarks>
-    /// Sample request:
-    /// POST /note
-    /// {
+    ///     Sample request:
+    ///     POST /note
+    ///     {
     ///     title: "note title",
     ///     details: "note details"
-    /// }
+    ///     }
     /// </remarks>
     /// <param name="createNoteDto">CreateNoteDto object</param>
     /// <returns>Returns id (guid)</returns>
@@ -91,16 +94,16 @@ public class NoteController(IMapper mapper) : BaseController
         var noteId = await Mediator.Send(command);
         return Created(noteId.ToString(), noteId);
     }
-    
+
     /// <summary>
-    /// Updates the note
+    ///     Updates the note
     /// </summary>
     /// <remarks>
-    /// Sample request:
-    /// PUT /note
-    /// {
+    ///     Sample request:
+    ///     PUT /note
+    ///     {
     ///     title: "updated note title"
-    /// }
+    ///     }
     /// </remarks>
     /// <param name="updateNoteDto">UpdateNoteDto object</param>
     /// <returns>Returns NoContent</returns>
@@ -117,13 +120,13 @@ public class NoteController(IMapper mapper) : BaseController
         await Mediator.Send(command);
         return NoContent();
     }
-    
+
     /// <summary>
-    /// Deletes the note by id
+    ///     Deletes the note by id
     /// </summary>
     /// <remarks>
-    /// Sample request:
-    /// DELETE /note/88DEB432-062F-43DE-8DCD-8B6EF79073D3
+    ///     Sample request:
+    ///     DELETE /note/88DEB432-062F-43DE-8DCD-8B6EF79073D3
     /// </remarks>
     /// <param name="id">Id of the note (guid)</param>
     /// <returns>Returns NoContent</returns>
